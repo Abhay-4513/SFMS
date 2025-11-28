@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seeds and Fertilizer Management System</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Configure Tailwind for custom colors and font -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-green': '#16a34a', // Darker green
+                        'secondary-green': '#4ade80', // Lighter green/lime
+                        'earth-brown': '#7c2d12',
+                        'soil-yellow': '#fde047',
+                        'bg-light': '#f7fdf7',
+                        'text-dark': '#1e3a8a', // Deep blue for better contrast
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles for better visual appeal */
+        .container-content {
+            min-height: calc(100vh - 128px); /* Full height minus fixed header and footer */
+            padding-top: 64px; /* Space for the fixed header */
+        }
+        .nav-link.active {
+            border-bottom: 2px solid #4ade80;
+            color: #16a34a;
+            font-weight: 600;
+        }
+        .page-section {
+            display: none;
+            animation: fade-in 0.5s ease-out;
+        }
+        .page-section.active {
+            display: block;
+        }
+        /* Style for the Input Form Grid */
+        #input-form-page .grid {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        /* Custom shadow for cards */
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .diagram-placeholder {
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #9ca3af;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-size: 1.125rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-bg-light font-sans text-text-dark">
+
+    <!-- Navbar (Fixed Top) -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+            <a href="#" onclick="showPage('home-page'); return false;" class="text-xl font-bold text-primary-green flex items-center group">
+                <i data-lucide="leaf" class="w-6 h-6 mr-2 text-secondary-green group-hover:rotate-12 transition-transform"></i>
+                SFMS
+            </a>
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex space-x-6 lg:space-x-8">
+                <a href="#home" onclick="showPage('home-page', this); return false;" class="nav-link text-gray-600 hover:text-primary-green transition duration-150">Home</a>
+                <a href="#about" onclick="showPage('about-page', this); return false;" class="nav-link text-gray-600 hover:text-primary-green transition duration-150">About</a>
+                <a href="#features" onclick="showPage('features-page', this); return false;" class="nav-link text-gray-600 hover:text-primary-green transition duration-150">Features</a>
+                <a href="#architecture" onclick="showPage('system-architecture-page', this); return false;" class="nav-link text-gray-600 hover:text-primary-green transition duration-150">Architecture</a>
+                <a href="#contact" onclick="showPage('contact-page', this); return false;" class="nav-link text-gray-600 hover:text-primary-green transition duration-150">Contact</a>
+            </div>
+            <!-- Auth Buttons (visible on desktop) -->
+            <div class="hidden md:flex space-x-3">
+                <button onclick="showPage('farmer-dashboard-page');" class="px-3 py-1 text-sm font-semibold text-white bg-primary-green rounded-lg hover:bg-secondary-green transition duration-150 shadow-md">Login</button>
+                <button onclick="showPage('input-form-page');" class="px-3 py-1 text-sm font-semibold text-primary-green border border-primary-green rounded-lg hover:bg-bg-light transition duration-150">Register</button>
+            </div>
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="md:hidden text-primary-green">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Mobile Menu Overlay (Hidden by Default) -->
+    <div id="mobile-menu" class="fixed inset-0 bg-white/95 backdrop-blur-sm z-40 hidden md:hidden pt-16">
+        <div class="flex flex-col space-y-4 p-6">
+            <a href="#home" onclick="showPage('home-page', this); hideMobileMenu(); return false;" class="nav-link text-xl text-text-dark hover:text-primary-green transition duration-150 py-2 border-b">Home</a>
+            <a href="#about" onclick="showPage('about-page', this); hideMobileMenu(); return false;" class="nav-link text-xl text-text-dark hover:text-primary-green transition duration-150 py-2 border-b">About</a>
+            <a href="#features" onclick="showPage('features-page', this); hideMobileMenu(); return false;" class="nav-link text-xl text-text-dark hover:text-primary-green transition duration-150 py-2 border-b">Features</a>
+            <a href="#architecture" onclick="showPage('system-architecture-page', this); hideMobileMenu(); return false;" class="nav-link text-xl text-text-dark hover:text-primary-green transition duration-150 py-2 border-b">Architecture</a>
+            <a href="#contact" onclick="showPage('contact-page', this); hideMobileMenu(); return false;" class="nav-link text-xl text-text-dark hover:text-primary-green transition duration-150 py-2 border-b">Contact</a>
+            <hr class="mt-4">
+            <button onclick="showPage('farmer-dashboard-page'); hideMobileMenu();" class="w-full py-3 text-lg font-semibold text-white bg-primary-green rounded-lg hover:bg-secondary-green transition duration-150 shadow-md">Login</button>
+            <button onclick="showPage('input-form-page'); hideMobileMenu();" class="w-full py-3 text-lg font-semibold text-primary-green border border-primary-green rounded-lg hover:bg-bg-light transition duration-150">Register</button>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="container-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+        <!-- 1. Home Page -->
+        <section id="home-page" class="page-section active">
+            <div class="text-center py-20 lg:py-32 bg-secondary-green/20 rounded-xl shadow-lg mt-8 animate-fade-in">
+                <h1 class="text-5xl md:text-6xl font-extrabold text-primary-green mb-4 leading-tight">
+                    Seeds & Fertilizer Management System
+                </h1>
+                <p class="text-xl text-text-dark max-w-3xl mx-auto mb-8">
+                    Empowering farmers with smart allocation, timely reports, and superior agricultural management for a prosperous harvest.
+                </p>
+                <div class="flex justify-center space-x-4">
+                    <button onclick="showPage('input-form-page');" class="px-8 py-3 text-lg font-semibold text-white bg-primary-green rounded-xl hover:bg-earth-brown transition duration-300 shadow-xl transform hover:scale-105">
+                        Get Started
+                    </button>
+                    <button onclick="showPage('farmer-dashboard-page');" class="px-8 py-3 text-lg font-semibold text-primary-green border-2 border-primary-green rounded-xl hover:bg-primary-green hover:text-white transition duration-300 transform hover:scale-105">
+                        Login
+                    </button>
+                </div>
+            </div>
+
+            <!-- Introduction Section -->
+            <div class="mt-16 bg-white p-8 rounded-xl shadow-lg border-t-4 border-primary-green animate-slide-up">
+                <h2 class="text-3xl font-bold text-earth-brown mb-6 border-b pb-2">Introduction: The Need for Precision Agriculture</h2>
+                <div class="space-y-6 text-gray-700">
+                    <p>
+                        <strong>Abstract:</strong> This project develops a robust web-based system for the scientific management of agricultural inputs—specifically seeds and fertilizers. It aims to streamline operations, enhance crop yield through optimal resource allocation, and foster sustainable farming practices by providing data-driven insights to both farmers and administrators.
+                    </p>
+                    <h3 class="text-2xl font-semibold text-primary-green">Problem Definition</h3>
+                    <p>
+                        Current manual methods for seed selection and fertilizer distribution often lead to inefficiency, misuse of resources, and suboptimal crop growth. Lack of standardized record-keeping makes it difficult to track inventory, process subsidies, and generate accurate reports for future planning, leading to significant economic losses for farmers.
+                    </p>
+                    <h3 class="text-2xl font-semibold text-primary-green">Scope</h3>
+                    <p>
+                        The system's scope encompasses end-to-end management, including farmer registration, seed/fertilizer request submission, inventory management for administrators, order tracking, and comprehensive report generation (distribution, inventory, and financial summaries).
+                    </p>
+                    <h3 class="text-2xl font-semibold text-primary-green">Objectives</h3>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li>To automate and optimize the process of seed and fertilizer allocation based on specific crop and soil data.</li>
+                        <li>To provide a user-friendly digital interface for farmers to input data and track their orders/status.</li>
+                        <li>To enable administrators to manage inventory, approve orders, and process payments/subsidies efficiently.</li>
+                        <li>To generate accurate and timely reports for decision-making and performance analysis.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. About Page -->
+        <section id="about-page" class="page-section">
+            <h2 class="text-4xl font-bold text-primary-green mb-8 text-center">About Our System</h2>
+            <div class="grid md:grid-cols-2 gap-10">
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-secondary-green animate-slide-up">
+                    <h3 class="text-2xl font-semibold text-earth-brown mb-4 flex items-center"><i data-lucide="sprout" class="w-6 h-6 mr-2"></i> Importance of Seed Quality</h3>
+                    <p class="text-gray-700">The foundation of successful agriculture is high-quality seed. Our system emphasizes tracking seed lineage, viability, and suitability for local climates and soil types, ensuring farmers start their planting with the best possible genetic material for maximum yield potential.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-secondary-green animate-slide-up" style="animation-delay: 0.1s;">
+                    <h3 class="text-2xl font-semibold text-earth-brown mb-4 flex items-center"><i data-lucide="flask-conical" class="w-6 h-6 mr-2"></i> The Role of Fertilizers</h3>
+                    <p class="text-gray-700">Fertilizers replenish essential nutrients in the soil. Proper allocation based on soil tests and crop needs prevents wastage, reduces environmental impact, and ensures plants receive balanced nutrition, which is critical for robust growth and high-quality produce.</p>
+                </div>
+            </div>
+
+            <div class="mt-10 bg-white p-8 rounded-xl shadow-2xl border-t-8 border-primary-green">
+                <h3 class="text-3xl font-bold text-primary-green mb-4">Features of the New System</h3>
+                <ul class="list-disc list-outside ml-6 text-gray-700 space-y-3">
+                    <li>**Seed Management:** Inventory tracking, quality checks, and tailored recommendations.</li>
+                    <li>**Fertilizer Allocation:** Scientific calculation of required NPK quantities based on crop input data.</li>
+                    <li>**Crop Monitoring:** Tracking input vs. output and growth stages.</li>
+                    <li>**User Dashboards:** Dedicated, simple interfaces for farmers and powerful tools for admins.</li>
+                    <li>**Reporting & Analytics:** Automated generation of distribution, inventory, and financial reports.</li>
+                </ul>
+            </div>
+
+            <!-- Project Content Summary -->
+            <div class="mt-10 space-y-6">
+                <h3 class="text-3xl font-bold text-earth-brown border-b pb-2">Feasibility and Requirements</h3>
+                <p class="p-4 bg-white rounded-lg shadow-md">
+                    <strong>Feasibility Study:</strong> The project is technologically feasible (web technology is mature), economically feasible (return on investment through efficiency gains), and operationally feasible (user-friendly design ensures rapid adoption by farming communities).
+                </p>
+                <p class="p-4 bg-white rounded-lg shadow-md">
+                    <strong>Requirements Analysis:</strong> Key requirements include secure user authentication, robust database management (Firestore integration is planned for persistence), real-time inventory updates, and multi-platform responsiveness.
+                </p>
+                <p class="p-4 bg-white rounded-lg shadow-md">
+                    <strong>Testing & Implementation Plan:</strong> A phased rollout involving unit testing, system integration testing, and user acceptance testing (UAT) with a small group of farmers is planned, followed by deployment and ongoing maintenance.
+                </p>
+                <p class="p-4 bg-white rounded-lg shadow-md">
+                    <strong>Conclusion:</strong> The Seeds and Fertilizer Management System represents a significant technological leap for local agriculture, promising increased yield, reduced waste, and a path toward sustainable, data-driven farming.
+                </p>
+            </div>
+
+        </section>
+
+        <!-- 3. Features Page -->
+        <section id="features-page" class="page-section">
+            <h2 class="text-4xl font-bold text-primary-green mb-10 text-center">System Capabilities & Features</h2>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                <!-- Card 1: Seed Management -->
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-soil-yellow hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
+                    <i data-lucide="seed" class="w-10 h-10 text-soil-yellow mb-3"></i>
+                    <h3 class="text-xl font-bold text-earth-brown mb-3">High-Quality Seed Management</h3>
+                    <p class="text-gray-700">Track and manage inventory of certified seeds, monitor expiration dates, and match seed varieties to specific geographic and environmental needs for optimal germination and growth.</p>
+                </div>
+
+                <!-- Card 2: Fertilizer Allocation -->
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-red-500 hover:shadow-xl transition duration-300 transform hover:-translate-y-1" style="animation-delay: 0.1s;">
+                    <i data-lucide="flask-conical-off" class="w-10 h-10 text-red-500 mb-3"></i>
+                    <h3 class="text-xl font-bold text-earth-brown mb-3">Scientific Fertilizer Allocation</h3>
+                    <p class="text-gray-700">Calculates precise NPK (Nitrogen, Phosphorus, Potassium) requirements based on farmer-submitted crop data, minimizing over-fertilization and ensuring cost-effective nutrient delivery.</p>
+                </div>
+
+                <!-- Card 3: Crop Monitoring -->
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-blue-500 hover:shadow-xl transition duration-300 transform hover:-translate-y-1" style="animation-delay: 0.2s;">
+                    <i data-lucide="monitor-up" class="w-10 h-10 text-blue-500 mb-3"></i>
+                    <h3 class="text-xl font-bold text-earth-brown mb-3">Crop Growth Monitoring</h3>
+                    <p class="text-gray-700">Allows farmers to input crop progress, yield estimates, and pest/disease data. This feeds into the analytics engine to improve future allocation models.</p>
+                </div>
+
+                <!-- Card 4: Reports & Analytics -->
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-indigo-500 hover:shadow-xl transition duration-300 transform hover:-translate-y-1" style="animation-delay: 0.3s;">
+                    <i data-lucide="bar-chart-3" class="w-10 h-10 text-indigo-500 mb-3"></i>
+                    <h3 class="text-xl font-bold text-earth-brown mb-3">Reports & Analytics</h3>
+                    <p class="text-gray-700">Automated generation of monthly/yearly reports on consumption, distribution, inventory levels, and subsidy payouts, offering clear insights for administrative decision-making.</p>
+                </div>
+
+                <!-- Card 5: User-Friendly System -->
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-pink-500 hover:shadow-xl transition duration-300 transform hover:-translate-y-1" style="animation-delay: 0.4s;">
+                    <i data-lucide="layout-dashboard" class="w-10 h-10 text-pink-500 mb-3"></i>
+                    <h3 class="text-xl font-bold text-earth-brown mb-3">User-Friendly Farmer System</h3>
+                    <p class="text-gray-700">Intuitive dashboards for both farmer and admin roles. Simple forms, clear status tracking, and accessibility design ensure usability even for first-time digital users.</p>
+                </div>
+
+                <!-- Card 6: Sustainability Benefits -->
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-primary-green hover:shadow-xl transition duration-300 transform hover:-translate-y-1" style="animation-delay: 0.5s;">
+                    <i data-lucide="leaf" class="w-10 h-10 text-primary-green mb-3"></i>
+                    <h3 class="text-xl font-bold text-earth-brown mb-3">Sustainable Agriculture Benefits</h3>
+                    <p class="text-gray-700">By promoting scientific, needs-based allocation, the system reduces chemical run-off, minimizes resource wastage, and encourages economically and environmentally sustainable farming.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4. System Architecture Page -->
+        <section id="system-architecture-page" class="page-section">
+            <h2 class="text-4xl font-bold text-primary-green mb-10 text-center">System Architecture & Design</h2>
+            <div class="space-y-12">
+
+                <!-- E-R Diagram -->
+                <div class="bg-white p-8 rounded-xl shadow-lg border-l-4 border-secondary-green animate-slide-up">
+                    <h3 class="text-2xl font-semibold text-earth-brown mb-4 flex items-center"><i data-lucide="database" class="w-6 h-6 mr-2"></i> Entity-Relationship (E–R) Diagram</h3>
+                    <div class="diagram-placeholder">
+                        Placeholder: E–R Diagram (Entities: Farmer, Seed, Fertilizer, Order, Inventory)
+                    </div>
+                    <p class="text-sm text-gray-500">Illustrates the relationships between core database entities: Farmers submit Orders, Orders contain Seeds and Fertilizers, which are managed by the Inventory.</p>
+                </div>
+
+                <!-- Use Case Diagram -->
+                <div class="bg-white p-8 rounded-xl shadow-lg border-l-4 border-secondary-green animate-slide-up" style="animation-delay: 0.1s;">
+                    <h3 class="text-2xl font-semibold text-earth-brown mb-4 flex items-center"><i data-lucide="git-branch" class="w-6 h-6 mr-2"></i> Use Case Diagram</h3>
+                    <div class="diagram-placeholder">
+                        Placeholder: Use Case Diagram (Actors: Farmer, Admin; Use Cases: Register, Place Order, Approve Order, View Report)
+                    </div>
+                    <p class="text-sm text-gray-500">Defines the system boundaries and how various actors interact with the system to achieve goals.</p>
+                </div>
+
+                <!-- Class Diagram -->
+                <div class="bg-white p-8 rounded-xl shadow-lg border-l-4 border-secondary-green animate-slide-up" style="animation-delay: 0.2s;">
+                    <h3 class="text-2xl font-semibold text-earth-brown mb-4 flex items-center"><i data-lucide="package-search" class="w-6 h-6 mr-2"></i> Class Diagram</h3>
+                    <div class="diagram-placeholder">
+                        Placeholder: Class Diagram (Classes: User, Crop, SeedItem, FertilizerItem, AllocationLogic)
+                    </div>
+                    <p class="text-sm text-gray-500">Shows the static structure of the system, defining classes, attributes, methods, and relationships between objects.</p>
+                </div>
+
+                <!-- Sequence Diagram -->
+                <div class="bg-white p-8 rounded-xl shadow-lg border-l-4 border-secondary-green animate-slide-up" style="animation-delay: 0.3s;">
+                    <h3 class="text-2xl font-semibold text-earth-brown mb-4 flex items-center"><i data-lucide="layers-3" class="w-6 h-6 mr-2"></i> Sequence Diagram (Order Submission)</h3>
+                    <div class="diagram-placeholder">
+                        Placeholder: Sequence Diagram (Steps: Farmer -> Submit Form -> Server -> Allocation Logic -> Database)
+                    </div>
+                    <p class="text-sm text-gray-500">Illustrates the chronological order of messages and interactions between objects for a specific scenario (e.g., placing an order).</p>
+                </div>
+
+                <!-- Activity Diagram -->
+                <div class="bg-white p-8 rounded-xl shadow-lg border-l-4 border-secondary-green animate-slide-up" style="animation-delay: 0.4s;">
+                    <h3 class="text-2xl font-semibold text-earth-brown mb-4 flex items-center"><i data-lucide="workflow" class="w-6 h-6 mr-2"></i> Activity Diagram (Order Approval Workflow)</h3>
+                    <div class="diagram-placeholder">
+                        Placeholder: Activity Diagram (Flow: Order Submitted -> Admin Review -> Decision Point -> Inventory Update)
+                    </div>
+                    <p class="text-sm text-gray-500">Represents the flow of control and activities involved in a process, such as the administrative order approval cycle.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 5. Farmer Dashboard Page -->
+        <section id="farmer-dashboard-page" class="page-section">
+            <h2 class="text-4xl font-bold text-primary-green mb-10 text-center flex items-center justify-center"><i data-lucide="wheat" class="w-8 h-8 mr-3"></i> Farmer Dashboard</h2>
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Farmer Profile Card -->
+                <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-xl border-t-4 border-soil-yellow animate-slide-up">
+                    <h3 class="text-2xl font-bold text-earth-brown mb-4 flex items-center"><i data-lucide="user-circle" class="w-6 h-6 mr-2"></i> Farmer Profile</h3>
+                    <p><strong>Name:</strong> Jane Doe</p>
+                    <p><strong>ID:</strong> FMR-7281</p>
+                    <p><strong>Location:</strong> Green Valley, Plot 4A</p>
+                    <p><strong>Registered Crops:</strong> Wheat, Corn, Soybeans</p>
+                    <button class="mt-4 w-full py-2 bg-secondary-green text-white font-semibold rounded-lg hover:bg-primary-green transition">Edit Profile</button>
+                </div>
+                <!-- Action Forms -->
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white p-6 rounded-xl shadow-xl border-l-4 border-primary-green animate-slide-up" style="animation-delay: 0.1s;">
+                        <h3 class="text-2xl font-bold text-primary-green mb-4 flex items-center"><i data-lucide="form-input" class="w-6 h-6 mr-2"></i> Quick Actions</h3>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                            <button onclick="showPage('input-form-page');" class="flex-1 py-3 bg-soil-yellow text-earth-brown font-bold rounded-lg hover:bg-soil-yellow/80 transition transform hover:scale-[1.02]">
+                                <i data-lucide="seed" class="w-5 h-5 inline mr-2"></i> New Seed Request
+                            </button>
+                            <button onclick="showPage('input-form-page');" class="flex-1 py-3 bg-secondary-green text-white font-bold rounded-lg hover:bg-primary-green transition transform hover:scale-[1.02]">
+                                <i data-lucide="flask-conical" class="w-5 h-5 inline mr-2"></i> New Fertilizer Request
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Order Tracking Table -->
+                    <div class="bg-white p-6 rounded-xl shadow-xl border-l-4 border-blue-500 animate-slide-up" style="animation-delay: 0.2s;">
+                        <h3 class="text-2xl font-bold text-blue-700 mb-4 flex items-center"><i data-lucide="truck" class="w-6 h-6 mr-2"></i> Order & Status Tracking</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">ORD-1021</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-11-20</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Wheat Seed, NPK 10:10:10</td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Approved</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">ORD-1022</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-12-01</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Corn Seed</td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Admin Dashboard Page -->
+        <section id="admin-dashboard-page" class="page-section">
+            <h2 class="text-4xl font-bold text-earth-brown mb-10 text-center flex items-center justify-center"><i data-lucide="shield-check" class="w-8 h-8 mr-3"></i> Admin Dashboard</h2>
+
+            <!-- Summary Cards -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <div class="bg-white p-5 rounded-xl shadow-xl border-l-4 border-indigo-500">
+                    <h4 class="text-gray-500">New Orders</h4>
+                    <p class="text-3xl font-bold text-indigo-700">14</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-xl border-l-4 border-red-500">
+                    <h4 class="text-gray-500">Fertilizer Low Stock</h4>
+                    <p class="text-3xl font-bold text-red-700">3</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-xl border-l-4 border-green-500">
+                    <h4 class="text-gray-500">Farmers Registered</h4>
+                    <p class="text-3xl font-bold text-green-700">452</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-xl border-l-4 border-yellow-500">
+                    <h4 class="text-gray-500">Subsidies Pending</h4>
+                    <p class="text-3xl font-bold text-yellow-700">$12,500</p>
+                </div>
+            </div>
+
+            <!-- Management Sections -->
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- User & Order Management -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Order Approval -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-primary-green">
+                        <h3 class="text-2xl font-bold text-primary-green mb-4 flex items-center"><i data-lucide="clipboard-check" class="w-6 h-6 mr-2"></i> Order Approval Queue</h3>
+                        <ul class="space-y-3">
+                            <li class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span>ORD-1022 (FMR-7281) - Corn Seed</span>
+                                <button class="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600">Review</button>
+                            </li>
+                            <li class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span>ORD-1023 (FMR-9012) - NPK 15:15:15</span>
+                                <button class="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600">Review</button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- User Management -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-secondary-green">
+                        <h3 class="text-2xl font-bold text-secondary-green mb-4 flex items-center"><i data-lucide="users" class="w-6 h-6 mr-2"></i> User Management</h3>
+                        <p class="text-gray-700">Search, view, and modify farmer and staff accounts.</p>
+                        <button class="mt-4 px-4 py-2 bg-gray-200 text-text-dark rounded-lg hover:bg-gray-300 transition">View All Users</button>
+                    </div>
+                </div>
+
+                <!-- Inventory & Reports CTA -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Inventory Management -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-soil-yellow">
+                        <h3 class="text-2xl font-bold text-soil-yellow-700 mb-4 flex items-center"><i data-lucide="warehouse" class="w-6 h-6 mr-2"></i> Seed & Fertilizer Inventory</h3>
+                        <p class="text-gray-700">Track current stock levels, receive restock alerts, and manage incoming shipments.</p>
+                        <button class="mt-4 w-full py-2 bg-soil-yellow text-earth-brown font-semibold rounded-lg hover:bg-soil-yellow/80 transition">Manage Inventory</button>
+                    </div>
+
+                    <!-- Reports Button -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-500">
+                        <h3 class="text-2xl font-bold text-blue-700 mb-4 flex items-center"><i data-lucide="file-text" class="w-6 h-6 mr-2"></i> Reports & Analytics</h3>
+                        <p class="text-gray-700">Generate monthly, yearly, and distribution reports.</p>
+                        <button onclick="showPage('reports-page');" class="mt-4 w-full py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition">Generate Reports</button>
+                    </div>
+
+                    <!-- Payment/Subsidy -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-pink-500">
+                        <h3 class="text-2xl font-bold text-pink-700 mb-4 flex items-center"><i data-lucide="wallet" class="w-6 h-6 mr-2"></i> Payment Processing</h3>
+                        <p class="text-gray-700">Review and process farmer subsidies and outstanding payments.</p>
+                        <button class="mt-4 w-full py-2 bg-pink-500 text-white font-semibold rounded-lg hover:bg-pink-600 transition">Process Payments</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Input Form Page -->
+        <section id="input-form-page" class="page-section">
+            <h2 class="text-4xl font-bold text-primary-green mb-10 text-center flex items-center justify-center"><i data-lucide="clipboard-list" class="w-8 h-8 mr-3"></i> Seed & Fertilizer Request Form</h2>
+
+            <form id="seed-request-form" class="bg-white p-8 rounded-xl shadow-2xl border-t-8 border-earth-brown">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="input-form-page">
+                    <!-- Farmer Details -->
+                    <fieldset class="p-4 border border-gray-200 rounded-lg">
+                        <legend class="px-2 font-bold text-lg text-primary-green">Farmer Details</legend>
+                        <div>
+                            <label for="farmer-name" class="block text-sm font-medium text-gray-700">Farmer Name</label>
+                            <input type="text" id="farmer-name" name="farmer-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
+                        </div>
+                        <div class="mt-4">
+                            <label for="farmer-id" class="block text-sm font-medium text-gray-700">Farmer ID</label>
+                            <input type="text" id="farmer-id" name="farmer-id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
+                        </div>
+                        <div class="mt-4">
+                            <label for="contact-number" class="block text-sm font-medium text-gray-700">Contact Number</label>
+                            <input type="tel" id="contact-number" name="contact-number" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
+                        </div>
+                    </fieldset>
+
+                    <!-- Crop Details -->
+                    <fieldset class="p-4 border border-gray-200 rounded-lg">
+                        <legend class="px-2 font-bold text-lg text-primary-green">Crop & Land Details</legend>
+                        <div>
+                            <label for="crop-type" class="block text-sm font-medium text-gray-700">Crop Type</label>
+                            <select id="crop-type" name="crop-type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border bg-white">
+                                <option value="">Select Crop</option>
+                                <option value="wheat">Wheat</option>
+                                <option value="corn">Corn</option>
+                                <option value="rice">Rice</option>
+                            </select>
+                        </div>
+                        <div class="mt-4">
+                            <label for="area-size" class="block text-sm font-medium text-gray-700">Area Size (Acres)</label>
+                            <input type="number" id="area-size" name="area-size" required min="0.1" step="0.1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
+                        </div>
+                        <div class="mt-4">
+                            <label for="soil-type" class="block text-sm font-medium text-gray-700">Soil Type</label>
+                            <input type="text" id="soil-type" name="soil-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
+                        </div>
+                    </fieldset>
+
+                    <!-- Seed Requirement -->
+                    <fieldset class="p-4 border border-gray-200 rounded-lg">
+                        <legend class="px-2 font-bold text-lg text-primary-green">Seed Requirement</legend>
+                        <div>
+                            <label for="seed-variety" class="block text-sm font-medium text-gray-700">Seed Variety</label>
+                            <input type="text" id="seed-variety" name="seed-variety" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
+                        </div>
+                        <div class="mt-4">
+                            <label for="seed-qty" class="block text-sm font-medium text-gray-700">Quantity (kg)</label>
+                            <input type="number" id="seed-qty" name="seed-qty" required min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
+                        </div>
+                        <div class="mt-4">
+                            <label for="cost-estimate" class="block text-sm font-medium text-gray-700">Seed Cost Estimate ($)</label>
+                            <input type="number" id="cost-estimate" name="cost-estimate" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" readonly value="250.00">
+                        </div>
+                    </fieldset>
+
+                    <!-- Fertilizer Requirement -->
+                    <fieldset class="p-4 border border-gray-200 rounded-lg md:col-span-2 lg:col-span-1">
+                        <legend class="px-2 font-bold text-lg text-primary-green">Fertilizer Requirement</legend>
+                        <div>
+                            <label for="fertilizer-type" class="block text-sm font-medium text-gray-700">Fertilizer Type</label>
+                            <select id="fertilizer-type" name="fertilizer-type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border bg-white">
+                                <option value="">Select Fertilizer</option>
+                                <option value="npk_10_10_10">NPK 10:10:10</option>
+                                <option value="urea">Urea</option>
+                                <option value="diammonium_phosphate">DAP</option>
+                            </select>
+                        </div>
+                        <div class="mt-4">
+                            <label for="fertilizer-qty" class="block text-sm font-medium text-gray-700">Quantity (kg)</label>
+                            <input type="number" id="fertilizer-qty" name="fertilizer-qty" required min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
+                        </div>
+                        <div class="mt-4">
+                            <label for="fertilizer-cost" class="block text-sm font-medium text-gray-700">Fertilizer Cost Estimate ($)</label>
+                            <input type="number" id="fertilizer-cost" name="fertilizer-cost" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" readonly value="150.00">
+                        </div>
+                    </fieldset>
+
+                    <!-- Financial & Remarks -->
+                    <fieldset class="p-4 border border-gray-200 rounded-lg md:col-span-2 lg:col-span-2">
+                        <legend class="px-2 font-bold text-lg text-primary-green">Financial & Remarks</legend>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="total-cost" class="block text-sm font-medium text-gray-700">Total Estimated Cost ($)</label>
+                                <input type="number" id="total-cost" name="total-cost" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" readonly value="400.00">
+                            </div>
+                            <div>
+                                <label for="subsidy-applied" class="block text-sm font-medium text-gray-700">Subsidy Applied (%)</label>
+                                <input type="number" id="subsidy-applied" name="subsidy-applied" min="0" max="100" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" value="25" readonly>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label for="remarks" class="block text-sm font-medium text-gray-700">Remarks</label>
+                            <textarea id="remarks" name="remarks" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border"></textarea>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="mt-8 pt-6 border-t flex justify-end space-x-4">
+                    <button type="reset" class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-100 transition duration-150 transform hover:scale-105">
+                        <i data-lucide="rotate-ccw" class="w-5 h-5 inline mr-2"></i> Reset
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-primary-green text-white font-semibold rounded-xl hover:bg-earth-brown transition duration-150 shadow-md transform hover:scale-105">
+                        <i data-lucide="send" class="w-5 h-5 inline mr-2"></i> Submit Request
+                    </button>
+                </div>
+            </form>
+            <div id="form-message" class="mt-4 p-3 rounded-lg text-center font-semibold hidden"></div>
+        </section>
+
+        <!-- 8. Reports Page -->
+        <section id="reports-page" class="page-section">
+            <h2 class="text-4xl font-bold text-primary-green mb-10 text-center flex items-center justify-center"><i data-lucide="file-bar-chart-2" class="w-8 h-8 mr-3"></i> Management Reports</h2>
+
+            <div class="space-y-12">
+                <!-- Seeds Distribution Table -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-soil-yellow">
+                    <h3 class="text-2xl font-bold text-earth-brown mb-4">Seeds Distribution Summary (Q3 2025)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variety</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Qty (kg)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Farmers</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Cost ($/kg)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr><td class="px-6 py-4">High Yield Wheat</td><td>1,500</td><td>85</td><td>2.50</td></tr>
+                                <tr><td class="px-6 py-4">Drought-Resistant Corn</td><td>950</td><td>55</td><td>3.10</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Fertilizer Distribution Table -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-red-500">
+                    <h3 class="text-2xl font-bold text-earth-brown mb-4">Fertilizer Distribution Summary (Q3 2025)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Qty (kg)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost Subsidized ($)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usage Efficiency (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr><td class="px-6 py-4">NPK 10:10:10</td><td>3,200</td><td>12,000</td><td>92</td></tr>
+                                <tr><td class="px-6 py-4">Urea</td><td>1,800</td><td>5,400</td><td>88</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Farmer Summary Table -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-500">
+                    <h3 class="text-2xl font-bold text-earth-brown mb-4">Farmer Activity Summary</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subsidy Received ($)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr><td class="px-6 py-4">FMR-7281</td><td>4</td><td>450</td><td>Active</td></tr>
+                                <tr><td class="px-6 py-4">FMR-9012</td><td>2</td><td>210</td><td>Active</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Inventory Summary Table -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-indigo-500">
+                    <h3 class="text-2xl font-bold text-earth-brown mb-4">Current Inventory Snapshot</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Qty (kg)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr><td class="px-6 py-4">Wheat Seed V2</td><td>Seed</td><td>500</td><td>Healthy</td></tr>
+                                <tr><td class="px-6 py-4">DAP</td><td>Fertilizer</td><td>150</td><td>Low Stock</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. Contact Page -->
+        <section id="contact-page" class="page-section">
+            <h2 class="text-4xl font-bold text-primary-green mb-10 text-center flex items-center justify-center"><i data-lucide="mail" class="w-8 h-8 mr-3"></i> Get In Touch</h2>
+            <div class="max-w-3xl mx-auto bg-white p-10 rounded-xl shadow-2xl border-l-8 border-primary-green grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold text-earth-brown mb-4 flex items-center"><i data-lucide="message-square" class="w-6 h-6 mr-2"></i> Helpdesk Support</h3>
+                    <p class="text-gray-700 mb-4">For immediate technical assistance or system inquiries, our dedicated helpdesk team is available.</p>
+                    <p class="text-lg font-semibold text-primary-green">Phone: +1 (555) 123-4567</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-earth-brown mb-4 flex items-center"><i data-lucide="mail-open" class="w-6 h-6 mr-2"></i> Support Email</h3>
+                    <p class="text-gray-700 mb-4">Send us detailed requests, partnership proposals, or feedback.</p>
+                    <p class="text-lg font-semibold text-primary-green">Email: support@sfms.org</p>
+                </div>
+                <div class="md:col-span-2">
+                    <h3 class="text-2xl font-bold text-earth-brown mb-4 flex items-center"><i data-lucide="map-pin" class="w-6 h-6 mr-2"></i> Office Address</h3>
+                    <address class="not-italic text-gray-700">
+                        SFMS Headquarters<br>
+                        123 Farmstead Lane, Agriculture Hub,<br>
+                        Rural Innovation Center, 54321, Earthville.
+                    </address>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-primary-green mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+            <p class="text-lg font-semibold mb-2">Seeds & Fertilizer Management System</p>
+            <nav class="space-x-4 mb-4 text-sm">
+                <a href="#about" onclick="showPage('about-page'); return false;" class="hover:text-secondary-green transition duration-150">About</a>
+                <a href="#features" onclick="showPage('features-page'); return false;" class="hover:text-secondary-green transition duration-150">Features</a>
+                <a href="#reports" onclick="showPage('reports-page'); return false;" class="hover:text-secondary-green transition duration-150">Reports</a>
+                <a href="#bibliography" onclick="alertCustom('This is a placeholder for the Bibliography/References page.'); return false;" class="hover:text-secondary-green transition duration-150">Bibliography</a>
+            </nav>
+            <p class="text-sm text-secondary-green/70">&copy; <span id="current-year"></span> SFMS Project. All rights reserved. Designed for sustainable agriculture management.</p>
+        </div>
+    </footer>
+
+    <!-- Custom Alert Modal (instead of alert()) -->
+    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] hidden">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm transform transition-all duration-300">
+            <h3 class="text-xl font-bold text-primary-green mb-3">System Message</h3>
+            <p id="modal-message" class="text-gray-700 mb-4"></p>
+            <button onclick="closeCustomModal()" class="w-full py-2 bg-primary-green text-white font-semibold rounded-lg hover:bg-earth-brown transition">Close</button>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Core Application Logic ---
+
+        // Initialize Lucide icons
+        window.onload = function() {
+            lucide.createIcons();
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            // Ensure home page is active on load
+            showPage('home-page');
+            document.querySelector('.nav-link').classList.add('active');
+        };
+
+        const pages = [
+            'home-page',
+            'about-page',
+            'features-page',
+            'system-architecture-page',
+            'farmer-dashboard-page',
+            'admin-dashboard-page',
+            'input-form-page',
+            'reports-page',
+            'contact-page'
+        ];
+
+        /**
+         * Shows the requested page and updates navigation active state.
+         * @param {string} pageId - The ID of the section to show.
+         * @param {HTMLElement | null} navElement - The navigation link element clicked.
+         */
+        function showPage(pageId, navElement = null) {
+            // Hide all pages
+            pages.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    section.classList.remove('active');
+                    section.scrollTop = 0; // Reset scroll position for smooth transition
+                }
+            });
+
+            // Show the requested page
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+
+            // Update Nav Links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            if (navElement) {
+                navElement.classList.add('active');
+            } else {
+                // Handle cases where the page switch is triggered by a button (Login/Get Started)
+                // Find the corresponding nav link and activate it if it exists.
+                const navLink = document.querySelector(`[onclick*="${pageId}"]`);
+                if (navLink) {
+                     // Check if this link is a primary nav link (not buried in a dashboard)
+                    if (navLink.closest('.md\\:flex.space-x-6, .md\\:flex.space-x-8, #mobile-menu')) {
+                         // Find the main navigation item using a substring match and activate it.
+                         document.querySelectorAll('.nav-link').forEach(link => {
+                            if (link.getAttribute('onclick') && link.getAttribute('onclick').includes(pageId)) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
+        // --- Custom Modal Logic ---
+
+        function alertCustom(message) {
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeCustomModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        // --- Form Validation Logic ---
+
+        document.getElementById('seed-request-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const messageBox = document.getElementById('form-message');
+            messageBox.classList.add('hidden');
+
+            let isValid = true;
+            let firstInvalidField = null;
+
+            // Simple check for required fields
+            form.querySelectorAll('[required]').forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.classList.add('border-red-500');
+                    if (!firstInvalidField) firstInvalidField = input;
+                } else {
+                    input.classList.remove('border-red-500');
+                }
+            });
+
+            // Specific validation for numbers
+            form.querySelectorAll('input[type="number"]').forEach(input => {
+                const value = parseFloat(input.value);
+                if (isNaN(value) || value < parseFloat(input.min || 0)) {
+                    isValid = false;
+                    input.classList.add('border-red-500');
+                    if (!firstInvalidField) firstInvalidField = input;
+                } else {
+                    input.classList.remove('border-red-500');
+                }
+            });
+
+            if (!isValid) {
+                alertCustom('Please fill out all required fields correctly before submitting the request.');
+                if (firstInvalidField) firstInvalidField.focus();
+                return;
+            }
+
+            // If valid, simulate submission and show success
+            messageBox.classList.remove('hidden');
+            messageBox.classList.remove('bg-red-100', 'text-red-800');
+            messageBox.classList.add('bg-green-100', 'text-green-800');
+            messageBox.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 inline mr-2"></i> Request Submitted Successfully! You can track the status on your Farmer Dashboard.';
+
+            // Reset form (optional)
+            form.reset();
+            lucide.createIcons(); // Re-initialize icons in the message box
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+                showPage('farmer-dashboard-page');
+            }, 3000);
+        });
+
+        // --- Mobile Menu Toggle Logic ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            mobileMenuBtn.innerHTML = mobileMenu.classList.contains('hidden')
+                ? '<i data-lucide="menu" class="w-6 h-6"></i>'
+                : '<i data-lucide="x" class="w-6 h-6"></i>';
+             lucide.createIcons();
+        });
+
+        function hideMobileMenu() {
+            mobileMenu.classList.add('hidden');
+            mobileMenuBtn.innerHTML = '<i data-lucide="menu" class="w-6 h-6"></i>';
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
